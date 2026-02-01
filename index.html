@@ -13,7 +13,6 @@
       --text:#eaf0ff;
       --muted:rgba(234,240,255,.72);
 
-      /* sarı fason */
       --gold:#ffd24a;
       --gold2:#ffb703;
 
@@ -28,14 +27,12 @@
       --shadow2: 0 12px 28px rgba(0,0,0,.38);
 
       --line: rgba(255,255,255,.10);
-      --card: rgba(255,255,255,.05);
 
       --userA: rgba(43,108,255,.92);
       --userB: rgba(43,108,255,.70);
 
-      /* viewport vars (JS doldurur) */
-      --vvh: 100svh;   /* visual viewport height */
-      --vvo: 0px;      /* visual viewport offsetTop */
+      --vvh: 100svh;
+      --vvo: 0px;
       --composerH: 78px;
     }
 
@@ -52,9 +49,11 @@
         radial-gradient(700px 700px at 50% 110%, rgba(43,108,255,.12), transparent 58%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow:hidden;
+      /* Native feel */
+      -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
     }
 
-    /* WhatsApp-like viewport behavior */
     .shell{
       height: var(--vvh);
       padding: 0;
@@ -79,20 +78,36 @@
       min-height:0;
       min-width:0;
       position:relative;
-      transform: translateY(var(--vvo)); /* iOS: viewport offset fix */
-      will-change: transform;
+      transform:none;
     }
 
-    /* ✅ Mobile iOS fix: lock the app (prevents jump/extra scroll) */
+    /* ✅ Native iOS lock */
     @media (max-width: 920px){
-      body{ overflow:hidden; }
-      .app{
+      html, body{
+        height:100%;
+        overflow:hidden;
+      }
+      body{
         position: fixed;
         inset: 0;
       }
+      .shell{ height: var(--vvh); }
+
+      .app{
+        position: fixed;
+        left:0; right:0;
+        top: var(--vvo);
+        height: var(--vvh);
+      }
+
+      .composer{
+        position:absolute;
+        left:0; right:0;
+        bottom:0;
+      }
     }
 
-    /* Desktop: center card like app */
+    /* Desktop */
     @media (min-width: 921px){
       .shell{
         padding: 16px;
@@ -101,17 +116,18 @@
       }
       .app{
         position: relative;
-        inset: auto;
         width: min(1040px, 100%);
         height: min(740px, 100%);
         border-radius: var(--radius);
         border: 1px solid var(--line);
         box-shadow: var(--shadow);
-        transform: none;
+      }
+      .composer{
+        position: sticky;
+        bottom: 0;
       }
     }
 
-    /* Topbar sticky */
     .topbar{
       position: sticky;
       top: 0;
@@ -130,12 +146,7 @@
       .topbar{ padding: 16px 18px; }
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      min-width:0;
-    }
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
 
     .mark{
       width: 38px; height: 38px;
@@ -149,26 +160,16 @@
       place-items:center;
       flex: 0 0 auto;
     }
-
     .mark svg{ width: 20px; height: 20px; fill:#2b1b00; opacity:.92; }
 
     .titles{ display:flex; flex-direction:column; gap:2px; min-width:0; }
     .titles .h1{
-      margin:0;
-      font-size: 15px;
-      font-weight: 900;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      margin:0; font-size: 15px; font-weight: 900; letter-spacing:.2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .titles .h2{
-      margin:0;
-      font-size: 12px;
-      color: var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      margin:0; font-size: 12px; color: var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
 
     .status{
@@ -191,28 +192,23 @@
     .status.error{ color: var(--err); border-color: rgba(255,180,180,.25); }
     .status.busy{ color: var(--warn); border-color: rgba(255,227,154,.25); }
 
-    /* Chat scroll area */
+    /* ✅ chat: native scroll only here */
     .chat{
       padding: 14px 14px 8px;
       padding-bottom: calc(var(--composerH) + 14px);
       overflow:auto;
-      scroll-behavior:smooth;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
       position:relative;
       min-width:0;
       min-height:0;
+
+      /* native feel */
+      scroll-behavior:smooth;
+      touch-action: pan-y;
     }
     @media (min-width: 921px){
       .chat{ padding: 18px 18px 8px; padding-bottom: calc(var(--composerH) + 18px); }
-    }
-
-    .chat::-webkit-scrollbar{ width:10px; }
-    .chat::-webkit-scrollbar-thumb{
-      background: rgba(255,255,255,.12);
-      border-radius: 99px;
-      border: 2px solid rgba(0,0,0,0);
-      background-clip: padding-box;
     }
 
     .row{ display:flex; margin: 10px 0; }
@@ -235,7 +231,6 @@
       .bubble{ max-width: 88%; border-radius: 16px; }
     }
 
-    /* Bot subtle gold edge */
     .row.bot .bubble{
       background: rgba(255,255,255,.045);
       border-color: rgba(255,255,255,.10);
@@ -261,13 +256,8 @@
       color:#fff;
     }
 
-    .bubble .meta{
-      margin-top: 6px;
-      font-size: 11px;
-      opacity: .70;
-    }
+    .bubble .meta{ margin-top: 6px; font-size: 11px; opacity: .70; }
 
-    /* Typing */
     .typing{
       display:inline-flex;
       align-items:center;
@@ -278,8 +268,7 @@
       background: rgba(255,255,255,.05);
     }
     .dot{
-      width:7px; height:7px;
-      border-radius:99px;
+      width:7px; height:7px; border-radius:99px;
       background: rgba(255,210,74,.85);
       animation: bounce 1.1s infinite ease-in-out;
     }
@@ -290,10 +279,7 @@
       40%{ transform: translateY(-4px); opacity:1; }
     }
 
-    /* Composer sticky */
     .composer{
-      position: sticky;
-      bottom: 0;
       z-index: 25;
       padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
       border-top: 1px solid var(--line);
@@ -321,12 +307,12 @@
       min-width:0;
     }
 
-    /* Quick chips: horizontal scroll on mobile */
     .quickRow{
       display:flex;
       gap:8px;
       flex-wrap:wrap;
       min-width:0;
+      touch-action: pan-x;
     }
     @media (max-width: 920px){
       .quickRow{
@@ -334,11 +320,6 @@
         overflow:auto;
         padding-bottom: 2px;
         -webkit-overflow-scrolling: touch;
-      }
-      .quickRow::-webkit-scrollbar{ height:8px; }
-      .quickRow::-webkit-scrollbar-thumb{
-        background: rgba(255,255,255,.12);
-        border-radius: 99px;
       }
     }
 
@@ -372,6 +353,8 @@
       color: var(--text);
       font-size: 14px;
       line-height: 1.35;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .btn{
@@ -393,7 +376,6 @@
     .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
     .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
 
-    /* Scroll-to-bottom button */
     .toBottom{
       position:absolute;
       right: 12px;
@@ -423,7 +405,6 @@
   <div class="shell">
     <div class="app">
 
-      <!-- TOPBAR -->
       <div class="topbar">
         <div class="brand">
           <div class="mark" aria-hidden="true">
@@ -443,12 +424,10 @@
         </div>
       </div>
 
-      <!-- CHAT -->
       <div class="chat" id="chat">
         <div class="toBottom" id="toBottomBtn" title="Aşağı en">⬇ Aşağı en</div>
       </div>
 
-      <!-- COMPOSER -->
       <div class="composer">
         <div class="inputWrap">
           <div class="quickRow" id="quickRow">
@@ -487,7 +466,7 @@
       return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
     }
 
-    // ✅ iOS Safari keyboard fix: visualViewport height + offsetTop
+    // ✅ VisualViewport sync
     function syncViewport(){
       const vv = window.visualViewport;
       const h = vv ? Math.round(vv.height) : window.innerHeight;
@@ -503,15 +482,38 @@
       }
     }
 
-    // Call with rAF to avoid iOS "double jump"
+    let raf = 0;
     function syncViewportRAF(){
-      requestAnimationFrame(syncViewport);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(syncViewport);
     }
 
     syncViewport();
     window.addEventListener("resize", syncViewportRAF);
     window.visualViewport?.addEventListener("resize", syncViewportRAF);
     window.visualViewport?.addEventListener("scroll", syncViewportRAF);
+
+    // ✅ Native iOS: prevent page from rubber-banding except inside .chat / .quickRow
+    function allowScrollOnlyWithin(el){
+      if(!el) return false;
+      const sc = getComputedStyle(el);
+      const canScrollY = (sc.overflowY === "auto" || sc.overflowY === "scroll");
+      const canScrollX = (sc.overflowX === "auto" || sc.overflowX === "scroll");
+
+      if (canScrollY && el.scrollHeight > el.clientHeight) return true;
+      if (canScrollX && el.scrollWidth > el.clientWidth) return true;
+      return false;
+    }
+
+    document.addEventListener("touchmove", (e) => {
+      // Let scrolling happen only if the target is inside a scrollable area
+      let node = e.target;
+      while(node && node !== document.body){
+        if (allowScrollOnlyWithin(node)) return;
+        node = node.parentElement;
+      }
+      e.preventDefault();
+    }, { passive: false });
 
     // ---- Scroll management: only autoscroll when user is near bottom ----
     let stickToBottom = true;
@@ -534,27 +536,33 @@
       });
     }
 
-    chatEl.addEventListener("scroll", () => {
-      updateStickiness();
-    }, { passive: true });
+    chatEl.addEventListener("scroll", updateStickiness, { passive:true });
 
     toBottomBtn.addEventListener("click", () => {
       stickToBottom = true;
       scrollToBottom(true);
     });
 
-    // When focusing input, keep pinned and resync viewport
+    // ✅ Focus/blur: keep pinned like native chat
     inputEl.addEventListener("focus", () => {
       setTimeout(() => {
         syncViewport();
         scrollToBottom(true);
-      }, 80);
+      }, 160);
     });
 
-    // Also resync on blur (keyboard closes)
     inputEl.addEventListener("blur", () => {
-      setTimeout(syncViewport, 50);
+      setTimeout(() => {
+        syncViewport();
+        scrollToBottom(true);
+      }, 120);
     });
+
+    // Prevent iOS from "auto-scrolling page" when focusing
+    inputEl.addEventListener("touchstart", () => {
+      // lock to bottom before keyboard anim
+      scrollToBottom(true);
+    }, { passive:true });
 
     function addMessage(role, text){
       const row = document.createElement("div");
@@ -618,14 +626,14 @@
 
         return JSON.stringify(data, null, 2);
       }
-
       return String(data);
     }
 
     function autoGrow(el){
       el.style.height = "44px";
       el.style.height = Math.min(el.scrollHeight, 180) + "px";
-      syncViewportRAF(); // composer height changes
+      syncViewportRAF();
+      scrollToBottom(false);
     }
     inputEl.addEventListener("input", () => autoGrow(inputEl));
 
@@ -694,8 +702,8 @@ Daha dəqiq məsləhət üçün yaz:
         setStatus("Xəta", "error");
       } finally{
         sendBtn.disabled = false;
-        scrollToBottom(false);
         syncViewportRAF();
+        scrollToBottom(false);
       }
     }
 
@@ -707,16 +715,11 @@ Daha dəqiq məsləhət üçün yaz:
       }
     });
 
-    function wireClicks(containerId){
-      const el = document.getElementById(containerId);
-      if(!el) return;
-      el.addEventListener("click", (ev) => {
-        const target = ev.target.closest(".quick");
-        if(!target) return;
-        sendMessage(target.textContent);
-      });
-    }
-    wireClicks("quickRow");
+    document.getElementById("quickRow").addEventListener("click", (ev) => {
+      const target = ev.target.closest(".quick");
+      if(!target) return;
+      sendMessage(target.textContent);
+    });
 
     updateStickiness();
     scrollToBottom(true);
