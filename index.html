@@ -2,7 +2,8 @@
 <html lang="az">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
   <title>kamera.az — AI köməkçi</title>
 
   <style>
@@ -31,6 +32,9 @@
 
       --vvh: 100svh;
       --vvo: 0px;
+      --vvw: 100vw;   /* ✅ NEW */
+      --vvl: 0px;     /* ✅ NEW */
+
       --composerH: 78px;
     }
 
@@ -78,7 +82,7 @@
       transform:none;
     }
 
-    /* ✅ iOS native lock */
+    /* ✅ Native iOS lock + width/left fix */
     @media (max-width: 920px){
       html, body{ height:100%; overflow:hidden; }
       body{ position: fixed; inset: 0; }
@@ -86,8 +90,9 @@
 
       .app{
         position: fixed;
-        left:0; right:0;
         top: var(--vvo);
+        left: var(--vvl);
+        width: var(--vvw);
         height: var(--vvh);
       }
 
@@ -98,7 +103,6 @@
       }
     }
 
-    /* Desktop */
     @media (min-width: 921px){
       .shell{
         padding: 16px;
@@ -183,7 +187,6 @@
     .status.error{ color: var(--err); border-color: rgba(255,180,180,.25); }
     .status.busy{ color: var(--warn); border-color: rgba(255,227,154,.25); }
 
-    /* ✅ chat: native scroll only here */
     .chat{
       padding: 14px 14px 8px;
       padding-bottom: calc(var(--composerH) + 14px);
@@ -220,25 +223,6 @@
       .bubble{ max-width: 88%; border-radius: 16px; }
     }
 
-    .row.bot .bubble{
-      background: rgba(255,255,255,.045);
-      border-color: rgba(255,255,255,.10);
-    }
-    .row.bot .bubble::before{
-      content:"";
-      position:absolute;
-      inset:-1px;
-      border-radius: inherit;
-      pointer-events:none;
-      background: linear-gradient(135deg, rgba(255,210,74,.18), transparent 55%);
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      padding:1px;
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      opacity:.70;
-    }
-
     .row.user .bubble{
       background: linear-gradient(135deg, var(--userA), var(--userB));
       border-color: rgba(43,108,255,.55);
@@ -246,27 +230,6 @@
     }
 
     .bubble .meta{ margin-top: 6px; font-size: 11px; opacity: .70; }
-
-    .typing{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 12px 14px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-    }
-    .dot{
-      width:7px; height:7px; border-radius:99px;
-      background: rgba(255,210,74,.85);
-      animation: bounce 1.1s infinite ease-in-out;
-    }
-    .dot:nth-child(2){ animation-delay: .15s; }
-    .dot:nth-child(3){ animation-delay: .30s; }
-    @keyframes bounce{
-      0%,80%,100%{ transform: translateY(0); opacity:.55; }
-      40%{ transform: translateY(-4px); opacity:1; }
-    }
 
     .composer{
       z-index: 25;
@@ -280,15 +243,9 @@
       min-width:0;
       backdrop-filter: blur(10px);
     }
-    @media (min-width: 921px){
-      .composer{ padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); }
-    }
 
-    /* ✅ extra safe for iOS home indicator */
     @supports (-webkit-touch-callout: none){
-      .composer{
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
-      }
+      .composer{ padding-bottom: max(12px, env(safe-area-inset-bottom)); }
     }
 
     .inputWrap{
@@ -328,14 +285,8 @@
       color: rgba(234,240,255,.86);
       cursor:pointer;
       user-select:none;
-      transition: transform .08s ease, border-color .2s ease, background .2s ease;
       white-space:nowrap;
       flex: 0 0 auto;
-    }
-    .quick:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,210,74,.35);
-      background: rgba(255,210,74,.08);
     }
 
     textarea{
@@ -353,6 +304,11 @@
       appearance: none;
     }
 
+    /* ✅ CRITICAL: prevent iOS input zoom → fixes right-side cut */
+    @media (max-width: 920px){
+      textarea{ font-size: 16px; }
+    }
+
     .btn{
       height: 52px;
       padding: 0 18px;
@@ -366,11 +322,9 @@
         linear-gradient(135deg, rgba(255,210,74,.96), rgba(255,183,3,.72));
       color: #2b1b00;
       box-shadow: 0 16px 30px rgba(255,183,3,.16);
-      transition: transform .08s ease, filter .2s ease;
       white-space:nowrap;
     }
-    .btn:hover{ transform: translateY(-1px); filter: brightness(1.03); }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
     .toBottom{
       position:absolute;
@@ -379,20 +333,14 @@
       z-index: 5;
       display:none;
       align-items:center;
-      gap:8px;
       padding: 10px 12px;
       border-radius: 999px;
       border:1px solid rgba(255,255,255,.14);
       background: rgba(0,0,0,.45);
       color: rgba(234,240,255,.92);
       cursor:pointer;
-      box-shadow: 0 16px 34px rgba(0,0,0,.35);
       backdrop-filter: blur(10px);
       user-select:none;
-    }
-    .toBottom:hover{
-      border-color: rgba(255,210,74,.30);
-      background: rgba(0,0,0,.55);
     }
   </style>
 </head>
@@ -463,14 +411,18 @@
       return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
     }
 
-    // ✅ VisualViewport sync (stable)
+    // ✅ VisualViewport sync incl. width/offsetLeft (fixes right cut)
     function syncViewport(){
       const vv = window.visualViewport;
       const h = vv ? Math.round(vv.height) : window.innerHeight;
-      const o = vv ? Math.round(vv.offsetTop) : 0;
+      const oT = vv ? Math.round(vv.offsetTop) : 0;
+      const w = vv ? Math.round(vv.width) : window.innerWidth;
+      const oL = vv ? Math.round(vv.offsetLeft) : 0;
 
       document.documentElement.style.setProperty("--vvh", h + "px");
-      document.documentElement.style.setProperty("--vvo", o + "px");
+      document.documentElement.style.setProperty("--vvo", oT + "px");
+      document.documentElement.style.setProperty("--vvw", w + "px");
+      document.documentElement.style.setProperty("--vvl", oL + "px");
 
       const composer = document.querySelector(".composer");
       if (composer){
@@ -490,8 +442,7 @@
     window.visualViewport?.addEventListener("resize", syncViewportRAF);
     window.visualViewport?.addEventListener("scroll", syncViewportRAF);
 
-    // ✅ iOS native scroll lock:
-    // allow touchmove only inside scrollable chat or quickRow
+    // iOS scroll lock (don’t block while typing)
     function isAllowedScrollTarget(node){
       if(!node) return false;
       if (node === chatEl || chatEl.contains(node)) return true;
@@ -500,15 +451,11 @@
     }
 
     document.addEventListener("touchmove", (e) => {
-      // IMPORTANT: if keyboard is open (input focused), do not over-block touches
-      // (prevents weird focus/selection bugs on iOS)
       if (document.activeElement === inputEl) return;
-
       if (isAllowedScrollTarget(e.target)) return;
       e.preventDefault();
     }, { passive: false });
 
-    // ---- Scroll management ----
     let stickToBottom = true;
 
     function isNearBottom(){
@@ -536,7 +483,6 @@
       scrollToBottom(true);
     });
 
-    // ✅ Focus/blur native behavior
     inputEl.addEventListener("focus", () => {
       setTimeout(() => {
         syncViewport();
@@ -548,7 +494,7 @@
       setTimeout(() => {
         syncViewport();
         scrollToBottom(true);
-      }, 120);
+      }, 140);
     });
 
     function addMessage(role, text){
@@ -608,7 +554,9 @@
           data.data?.response ?? data.data?.output ?? data.data?.text ??
           data.result?.response ?? data.result?.output ?? data.result?.text ??
           data.json?.response ?? data.json?.output ?? data.json?.text ??
+          data.body?.response ?? data.body?._toggle?.text ?? data.body?.text ??
           data.body?.response ?? data.body?.output ?? data.body?.text;
+
         if (typeof nested === "string") return nested;
 
         return JSON.stringify(data, null, 2);
@@ -634,8 +582,7 @@ Daha dəqiq məsləhət üçün yaz:
       const msg = (textOverride ?? inputEl.value).trim();
       if(!msg) return;
 
-      // ✅ native: close keyboard immediately after sending
-      inputEl.blur();
+      inputEl.blur(); // ✅ hide keyboard instantly
 
       addMessage("user", msg);
       inputEl.value = "";
@@ -691,8 +638,6 @@ Daha dəqiq məsləhət üçün yaz:
         setStatus("Xəta", "error");
       } finally{
         sendBtn.disabled = false;
-
-        // ✅ keep keyboard hidden & make UI perfect after response
         inputEl.blur();
         syncViewportRAF();
         scrollToBottom(true);
