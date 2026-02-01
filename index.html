@@ -21,8 +21,6 @@
       --err:#ffb4b4;
 
       --radius:22px;
-      --radius2:16px;
-
       --shadow: 0 26px 70px rgba(0,0,0,.52);
       --shadow2: 0 12px 28px rgba(0,0,0,.38);
 
@@ -49,7 +47,6 @@
         radial-gradient(700px 700px at 50% 110%, rgba(43,108,255,.12), transparent 58%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow:hidden;
-      /* Native feel */
       -webkit-text-size-adjust: 100%;
       touch-action: manipulation;
     }
@@ -81,16 +78,10 @@
       transform:none;
     }
 
-    /* ✅ Native iOS lock */
+    /* ✅ iOS native lock */
     @media (max-width: 920px){
-      html, body{
-        height:100%;
-        overflow:hidden;
-      }
-      body{
-        position: fixed;
-        inset: 0;
-      }
+      html, body{ height:100%; overflow:hidden; }
+      body{ position: fixed; inset: 0; }
       .shell{ height: var(--vvh); }
 
       .app{
@@ -202,8 +193,6 @@
       position:relative;
       min-width:0;
       min-height:0;
-
-      /* native feel */
       scroll-behavior:smooth;
       touch-action: pan-y;
     }
@@ -293,6 +282,13 @@
     }
     @media (min-width: 921px){
       .composer{ padding: 14px 14px calc(14px + env(safe-area-inset-bottom)); }
+    }
+
+    /* ✅ extra safe for iOS home indicator */
+    @supports (-webkit-touch-callout: none){
+      .composer{
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+      }
     }
 
     .inputWrap{
@@ -453,6 +449,7 @@
     const statusEl = document.getElementById("status");
     const statusTextEl = document.getElementById("statusText");
     const toBottomBtn = document.getElementById("toBottomBtn");
+    const quickRowEl = document.getElementById("quickRow");
 
     function setStatus(text, mode="ok"){
       statusTextEl.textContent = text;
@@ -466,7 +463,7 @@
       return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
     }
 
-    // ✅ VisualViewport sync
+    // ✅ VisualViewport sync (stable)
     function syncViewport(){
       const vv = window.visualViewport;
       const h = vv ? Math.round(vv.height) : window.innerHeight;
@@ -493,33 +490,29 @@
     window.visualViewport?.addEventListener("resize", syncViewportRAF);
     window.visualViewport?.addEventListener("scroll", syncViewportRAF);
 
-    // ✅ Native iOS: prevent page from rubber-banding except inside .chat / .quickRow
-    function allowScrollOnlyWithin(el){
-      if(!el) return false;
-      const sc = getComputedStyle(el);
-      const canScrollY = (sc.overflowY === "auto" || sc.overflowY === "scroll");
-      const canScrollX = (sc.overflowX === "auto" || sc.overflowX === "scroll");
-
-      if (canScrollY && el.scrollHeight > el.clientHeight) return true;
-      if (canScrollX && el.scrollWidth > el.clientWidth) return true;
+    // ✅ iOS native scroll lock:
+    // allow touchmove only inside scrollable chat or quickRow
+    function isAllowedScrollTarget(node){
+      if(!node) return false;
+      if (node === chatEl || chatEl.contains(node)) return true;
+      if (node === quickRowEl || quickRowEl.contains(node)) return true;
       return false;
     }
 
     document.addEventListener("touchmove", (e) => {
-      // Let scrolling happen only if the target is inside a scrollable area
-      let node = e.target;
-      while(node && node !== document.body){
-        if (allowScrollOnlyWithin(node)) return;
-        node = node.parentElement;
-      }
+      // IMPORTANT: if keyboard is open (input focused), do not over-block touches
+      // (prevents weird focus/selection bugs on iOS)
+      if (document.activeElement === inputEl) return;
+
+      if (isAllowedScrollTarget(e.target)) return;
       e.preventDefault();
     }, { passive: false });
 
-    // ---- Scroll management: only autoscroll when user is near bottom ----
+    // ---- Scroll management ----
     let stickToBottom = true;
 
     function isNearBottom(){
-      const threshold = 120;
+      const threshold = 140;
       return (chatEl.scrollHeight - (chatEl.scrollTop + chatEl.clientHeight)) < threshold;
     }
 
@@ -543,7 +536,7 @@
       scrollToBottom(true);
     });
 
-    // ✅ Focus/blur: keep pinned like native chat
+    // ✅ Focus/blur native behavior
     inputEl.addEventListener("focus", () => {
       setTimeout(() => {
         syncViewport();
@@ -557,12 +550,6 @@
         scrollToBottom(true);
       }, 120);
     });
-
-    // Prevent iOS from "auto-scrolling page" when focusing
-    inputEl.addEventListener("touchstart", () => {
-      // lock to bottom before keyboard anim
-      scrollToBottom(true);
-    }, { passive:true });
 
     function addMessage(role, text){
       const row = document.createElement("div");
@@ -647,10 +634,12 @@ Daha dəqiq məsləhət üçün yaz:
       const msg = (textOverride ?? inputEl.value).trim();
       if(!msg) return;
 
+      // ✅ native: close keyboard immediately after sending
+      inputEl.blur();
+
       addMessage("user", msg);
       inputEl.value = "";
       autoGrow(inputEl);
-      inputEl.focus();
 
       sendBtn.disabled = true;
       setStatus("Yazılır...", "busy");
@@ -702,8 +691,11 @@ Daha dəqiq məsləhət üçün yaz:
         setStatus("Xəta", "error");
       } finally{
         sendBtn.disabled = false;
+
+        // ✅ keep keyboard hidden & make UI perfect after response
+        inputEl.blur();
         syncViewportRAF();
-        scrollToBottom(false);
+        scrollToBottom(true);
       }
     }
 
@@ -715,7 +707,7 @@ Daha dəqiq məsləhət üçün yaz:
       }
     });
 
-    document.getElementById("quickRow").addEventListener("click", (ev) => {
+    quickRowEl.addEventListener("click", (ev) => {
       const target = ev.target.closest(".quick");
       if(!target) return;
       sendMessage(target.textContent);
